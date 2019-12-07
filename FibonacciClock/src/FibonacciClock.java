@@ -1,6 +1,9 @@
-
-import java.text.SimpleDateFormat;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.*;
+import javax.swing.JButton;
 import javax.swing.JTextArea;
 
 public class FibonacciClock {
@@ -17,36 +20,113 @@ public class FibonacciClock {
 	private Square square1_2;
 
 	public ClockGui cg;// Clock GUI object
+	ClockThread thread;
 
 	private String minuteDetails;
 	private String hourDetails;
 	private String minuteMoreDetails;
 
+	Calendar calendar;
 	private int hourCount;
 	private int minuteCount;
-	private int hour;
-	private int minute;
-
-	ClockThread thread;
+	public int hour;
+	public int minute;
 
 	final JTextArea details;
+	final JButton btnShowPattern;
+
+	StringBuilder hoursB;
+	StringBuilder minutesB;
+	
+	List<Square> objPattern0; 
+	List<Square> objPattern1;
+	List<Square> objPattern2;
+
 
 	public FibonacciClock() {
 		cg = new ClockGui();
 
 		details = cg.getDetails();
-
+		
 		square5 = new Square(NONE, cg.getSquare5(), 5);
 		square3 = new Square(NONE, cg.getSquare3(), 3);
 		square2 = new Square(NONE, cg.getSquare2(), 2);
 		square1_1 = new Square(NONE, cg.getSquare1_1(), 1);
 		square1_2 = new Square(NONE, cg.getSquare1_2(), 1);
 
-		thread = new ClockThread(this); // Calling  the Thread
+		objPattern0 = new ArrayList<Square>();
+		objPattern0.add(square5);
+		objPattern0.add(square3);
+		objPattern0.add(square2);
+		objPattern0.add(square1_1);
+		objPattern0.add(square1_2);
+		
+		objPattern1 = new ArrayList<Square>();
+		objPattern1.add(square1_2);
+		objPattern1.add(square5);
+		objPattern1.add(square3);
+		objPattern1.add(square2);
+		objPattern1.add(square1_1);
+
+		objPattern2 = new ArrayList<Square>();
+		objPattern2.add(square1_1);
+		objPattern2.add(square2);
+		objPattern2.add(square5);
+		objPattern2.add(square3);
+		objPattern2.add(square1_2);
+		
+		calendar = GregorianCalendar.getInstance();
+		this.hour = calendar.get(Calendar.HOUR);
+		
+		this.minute = calendar.get(Calendar.MINUTE) / 5;
+
+		hoursB = new StringBuilder();
+		minutesB = new StringBuilder();
+
+		//JButton to cheeck patters 
+		btnShowPattern = cg.getBtnShowPattern();
+
+		btnShowPattern.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+
+				//System.out.print(btnShowPattern.getText() + hour + ":" + minute);
+				if (btnShowPattern.getText() == "Show New Pattern") {
+					hour = cg.getHour();
+					minute = cg.getMinute() / 5;
+					generateColorPattern(objPattern1);
+					btnShowPattern.setText("Show Next Pattern");
+				} 
+				else if(btnShowPattern.getText() == "Current Pattern")
+				{
+					//buildColorClock();
+					calendar=GregorianCalendar.getInstance();
+					hour=calendar.get(Calendar.HOUR);
+					minute=calendar.get(Calendar.MINUTE) / 5;
+					
+					generateColorPattern(objPattern0);
+					btnShowPattern.setText("Show New Pattern");
+				}
+				else 
+				{
+					hour = cg.getHour();
+					minute = cg.getMinute() / 5;
+					if (hour == 10 || hour == 5 || minute == 10 || minute == 5)
+						generateColorPattern(objPattern0);//buildColorClock();
+					else
+						generateColorPattern(objPattern2);
+					
+					btnShowPattern.setText("Current Pattern");
+				}
+
+			}
+		});
+
+		thread = new ClockThread(this); // Calling Thread
 
 	}
-	
-	//Select color for Hour representation(Red) 
+
+	// Select color for Hour representation(Red)
 	private void setHour(StringBuilder sB, Square square) {
 		int value = square.getValue();
 		if (hour >= value) {
@@ -56,10 +136,11 @@ public class FibonacciClock {
 			hourCount += value;
 		} else {
 			sB.append(0);
+			//square.setColour(NONE);
 		}
 	}
 	
-	//process color for minute representation(Green) 
+	//create sequence for minute
 	private void setminute(StringBuilder sB, Square square) {
 		int value = square.getValue();
 		if (minute >= value) {
@@ -69,59 +150,48 @@ public class FibonacciClock {
 			minuteCount += value;
 		} else {
 			sB.append(0);
+			//square.setColour(NONE);
 		}
 	}
-	
-	//Add live time on Title Bar
-	public void showTimeOnTtile(Calendar calendar) {
-		cg.setTitle("Fibonacci Clock - " + (new SimpleDateFormat("hh:mm:ss a")).format(calendar.getTime()));
-		System.out.print("\nDate And Time Is: " + calendar.getTime());
-	}
-	
-	//Core process of the program. Generate the appropriate color sequences.
-	public void buildColorClock(Calendar calendar) {
-
-		hour = calendar.get(Calendar.HOUR);
-		minute = calendar.get(Calendar.MINUTE) / 5;
-
-		StringBuilder hoursB = new StringBuilder();
-		StringBuilder minutesB = new StringBuilder();
+		
+	// Build time's different Color Pattern
+	public void generateColorPattern(List<Square> obj) {
+		
+		hoursB.setLength(0);
+		minutesB.setLength(0);
 
 		hourCount = 0;
 		minuteCount = 0;
 
-		setHour(hoursB, square5);
-		hoursB.append("+");
-		setHour(hoursB, square3);
-		hoursB.append("+");
-		setHour(hoursB, square2);
-		hoursB.append("+");
-		setHour(hoursB, square1_1);
-		hoursB.append("+");
-		setHour(hoursB, square1_2);
+		for (Square Sq : obj) {
+			Sq.setColour(NONE);
+			setHour(hoursB, Sq);
+			System.out.print("\n Is: " + obj.lastIndexOf(Sq));
+			if (obj.lastIndexOf(Sq) < 4)
+				hoursB.append("+");
+		}
 		hoursB.append(" = ");
 		hoursB.append(hourCount);
 		hourDetails = hoursB.toString();
 
-		setminute(minutesB, square5);
-		minutesB.append("+");
-		setminute(minutesB, square3);
-		minutesB.append("+");
-		setminute(minutesB, square2);
-		minutesB.append("+");
-		setminute(minutesB, square1_1);
-		minutesB.append("+");
-		setminute(minutesB, square1_2);
+		for (Square Sq : obj) {
+			setminute(minutesB, Sq);
+			if (obj.lastIndexOf(Sq) < 4)
+				minutesB.append("+");
+		}
 		minutesB.append("=");
 		minutesB.append(minuteCount);
 		minutesB.append("*5");
 		minuteDetails = minutesB.toString();
 		minuteMoreDetails = String.valueOf(minuteCount * 5);
-	
-		showProcessDetail();// Display live changes
+
+		showProcessDetail();
+
+		hoursB.setLength(0);
+		minutesB.setLength(0);
 	}
-	
-	//Decide the blue (Hour and Minutes) Or Only minute color(Green)
+
+	// Decide the blue (Hour and Minutes) Or Only minute color(Green)
 	private void setMinuteOrBothColour(Square square) {
 		if (square.getColour() == HOUR) {
 			square.setColour(BOTH);
@@ -129,12 +199,12 @@ public class FibonacciClock {
 			square.setColour(MINUTE);
 		}
 	}
-	
-	//Build the clock live display 
+
+	// Build the clock live display
 	public void showProcessDetail() {
-		
+
 		StringBuilder sB = new StringBuilder();
-		
+
 		sB.append("White = null");
 		sB.append("\n");
 		sB.append("Green = minute");
@@ -157,8 +227,13 @@ public class FibonacciClock {
 		sB.append(minuteMoreDetails);
 		details.setText(sB.toString());
 
+		hourDetails = "";
+		minuteDetails = "";
+		minuteMoreDetails = "";
+		sB.setLength(0);
 	}
-
+	
+	//Main Start()
 	public static void main(String[] args) {
 		new FibonacciClock();
 	}

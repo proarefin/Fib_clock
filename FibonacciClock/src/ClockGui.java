@@ -1,9 +1,13 @@
+import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import java.awt.Color;
 import javax.swing.border.LineBorder;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTextArea;
+import javax.swing.SpinnerNumberModel;
+
 import java.awt.Font;
 
 
@@ -17,7 +21,10 @@ public class ClockGui extends JFrame {
 	private JPanel square1_1;
 	private JPanel square1_2;
 	
-	private JLabel  jlabel;
+	private JSpinner hourSpinner;
+	private JSpinner minuteSpinner;
+	
+	private JButton btnShowPattern;
 	
 	private JTextArea details;
 	
@@ -68,11 +75,39 @@ public class ClockGui extends JFrame {
 		details.setEditable(false);
 		getContentPane().add(details);
 			
-
+		SpinnerNumberModel model = new SpinnerNumberModel(0, 0, 12, 1);
+		hourSpinner = new JSpinner();
+		hourSpinner.setModel(model);
+		((DefaultEditor) hourSpinner.getEditor()).getTextField().setEditable(false);
+		hourSpinner.setBounds(35, 217, 50, 30);
+		getContentPane().add(hourSpinner);
 		
-		setSize(500,250);
+		model = new SpinnerNumberModel(0, 0, 55, 5);
+		minuteSpinner = new JSpinner();
+		minuteSpinner.setModel(model);
+		((DefaultEditor) minuteSpinner.getEditor()).getTextField().setEditable(false);
+		minuteSpinner.setBounds(97, 217, 50, 30);
+		getContentPane().add(minuteSpinner);
+		
+		btnShowPattern = new JButton("Show New Pattern");
+		btnShowPattern.setBounds(175, 217, 140, 30);
+		getContentPane().add(btnShowPattern);
+		
+		setSize(500,300);
 		setVisible(true);
 		setResizable(false);
+	}
+	
+	public JButton getBtnShowPattern() {
+		return btnShowPattern;
+	}
+	
+	public int getMinute() {
+		return (int)minuteSpinner.getValue();
+	}
+	
+	public int getHour() {
+		return (int)hourSpinner.getValue();
 	}
 	
 	public JTextArea getDetails() {
